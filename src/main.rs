@@ -30,13 +30,9 @@ fn aggregate(options: Options) {
 
     println!("Using path: {:?}", root_path);
 
+    let extensions = options.extensions.unwrap_or_default();
 
-    if let Some(extensions) = options.extensions {
-        println!("Using extensions: {:?}", extensions);
-        // Extension logic here
-    }
-
-    let file_paths = get_file_paths(&root_path);
+    let file_paths = get_file_paths(&root_path, &extensions);
 
     let contents = combine_file_contents(&root_path, &file_paths);
     match contents {
@@ -81,10 +77,14 @@ fn combine_file_contents(root_path: &PathBuf, file_paths: &Vec<PathBuf>) -> Opti
     }
 }
 
-fn get_file_paths(root_path: &PathBuf) -> Vec<PathBuf> {
+fn get_file_paths(root_path: &PathBuf, whitelisted_file_types: &Vec<String>) -> Vec<PathBuf> {
     let mut files = Vec::new();
     for entry in WalkDir::new(&root_path).into_iter().filter_map(|e| e.ok()) {
-        if entry.metadata().map(|m| m.is_file()).unwrap_or(false) {
+        if entry.metadata().map(|m| {
+            m.is_file() && whitelisted_file_types.iter().any(|ext| {
+                entry.path().extension().and_then(|e| e.to_str()).map(|e| e.eq_ignore_ascii_case(ext)).unwrap_or(false)
+            })
+        }).unwrap_or(false) {
             files.push(entry.path().to_path_buf());
         }
     }
