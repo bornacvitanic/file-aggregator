@@ -1,32 +1,48 @@
+use std::fs;
 use std::fs::File;
 use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
-pub fn get_file_paths(root_path: &PathBuf, whitelisted_file_types: &Vec<String>) -> Vec<PathBuf> {
+pub(crate) fn get_file_paths(root_path: &PathBuf, whitelisted_file_types: &Vec<String>) -> Vec<PathBuf> {
     let mut files = Vec::new();
     for entry in WalkDir::new(root_path).into_iter().filter_map(|e| e.ok()) {
-        if entry.metadata().map(|m| {
-            m.is_file() && (whitelisted_file_types.is_empty() || whitelisted_file_types.iter().any(|ext| {
-                entry.path().extension().and_then(|e| e.to_str()).map(|e| e.eq_ignore_ascii_case(ext)).unwrap_or(false)
-            }))
-        }).unwrap_or(false) {
+        if is_valid_file(&entry.path(), &whitelisted_file_types) {
             files.push(entry.path().to_path_buf());
         }
     }
     files
 }
 
+fn is_valid_file(path: &Path, whitelisted_file_types: &Vec<String>) -> bool {
+    match path.metadata() {
+        Ok(metadata) if metadata.is_file() => {
+            if whitelisted_file_types.is_empty() {
+                return true;
+            }
+            if let Some(extension) = path.extension().and_then(|e| e.to_str()) {
+                return whitelisted_file_types.iter().any(|ext| ext.eq_ignore_ascii_case(extension));
+            }
+            false
+        }
+        _ => false,
+    }
+}
+
 pub fn distribute_contents(root_path: &PathBuf, clipboard_text: &str) -> io::Result<()> {
     let files_contents = parse_combined_contents(clipboard_text);
     for (relative_path, content) in files_contents {
-        let file_path = root_path.join(relative_path);
-        if let Some(parent) = file_path.parent() {
-            std::fs::create_dir_all(parent)?;
-        }
-        let mut file = File::create(file_path)?;
-        file.write_all(content.as_bytes())?;
+        write_file(root_path.join(relative_path), &content)?;
     }
+    Ok(())
+}
+
+fn write_file(file_path: PathBuf, content: &str) -> io::Result<()> {
+    if let Some(parent) = file_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    let mut file = File::create(file_path)?;
+    file.write_all(content.as_bytes())?;
     Ok(())
 }
 
