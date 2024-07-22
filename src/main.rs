@@ -81,9 +81,9 @@ fn get_file_paths(root_path: &PathBuf, whitelisted_file_types: &Vec<String>) -> 
     let mut files = Vec::new();
     for entry in WalkDir::new(&root_path).into_iter().filter_map(|e| e.ok()) {
         if entry.metadata().map(|m| {
-            m.is_file() && whitelisted_file_types.iter().any(|ext| {
+            m.is_file() && (whitelisted_file_types.is_empty() || whitelisted_file_types.iter().any(|ext| {
                 entry.path().extension().and_then(|e| e.to_str()).map(|e| e.eq_ignore_ascii_case(ext)).unwrap_or(false)
-            })
+            }))
         }).unwrap_or(false) {
             files.push(entry.path().to_path_buf());
         }
