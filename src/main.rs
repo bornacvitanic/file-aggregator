@@ -1,3 +1,6 @@
+use std::string::String;
+use std::fs::File;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use clap::{Parser};
 use walkdir::WalkDir;
@@ -38,7 +41,22 @@ fn aggregate(options: Options) {
 fn walk_directory(root_path: &PathBuf) {
     for entry in WalkDir::new(&root_path).into_iter().filter_map(|e| e.ok()) {
         match make_relative(entry.path(), &root_path) {
-            Some(relative_path) => println!("{}", relative_path.display()),
+            Some(relative_path) => {
+                match File::open(entry.path()) {
+                    Ok(mut file) => {
+                        let mut contents = String::new();
+                        if let Err(err) = file.read_to_string(&mut contents) {
+                            eprintln!("Error reading file {}: {}", entry.path().display(), err);
+                        } else {
+                            println!("//{}", relative_path.display());
+                            println!("{}\n", contents);
+                        }
+                    },
+                    Err(err) => {
+                        eprintln!("Error opening file {}: {}", entry.path().display(), err);
+                    },
+                }
+            },
             None => println!("The base path is not an ancestor of the absolute path."),
         }
     }
