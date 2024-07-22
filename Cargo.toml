@@ -1,7 +1,12 @@
 [package]
 name = "file_aggregator"
 version = "0.1.0"
+authors = ["Borna Cvitanić borna.cvitanic@gmail.com"]
 edition = "2021"
+
+[[bin]]
+name = "fileagg"
+path = "src/main.rs"
 
 [dependencies]
 # command-line interface (CLI)
