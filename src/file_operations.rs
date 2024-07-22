@@ -115,6 +115,72 @@ mod tests {
     }
 
     #[test]
+    fn test_is_valid_file_no_extension() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file_path = temp_dir.path().join("file");
+        fs::write(&file_path, "content").unwrap();
+
+        let whitelist = vec!["txt".to_string()];
+        assert!(!is_valid_file(&file_path, &whitelist));
+    }
+
+    #[test]
+    fn test_is_valid_file_hidden_file() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file_path = temp_dir.path().join(".hiddenfile.txt");
+        fs::write(&file_path, "content").unwrap();
+
+        let whitelist = vec!["txt".to_string()];
+        assert!(is_valid_file(&file_path, &whitelist));
+    }
+
+    #[test]
+    fn test_is_valid_file_case_insensitive_extension() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file_path = temp_dir.path().join("file.TXT");
+        fs::write(&file_path, "content").unwrap();
+
+        let whitelist = vec!["txt".to_string()];
+        assert!(is_valid_file(&file_path, &whitelist));
+    }
+
+    #[test]
+    fn test_is_valid_file_empty_whitelist() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file_path = temp_dir.path().join("file.txt");
+        fs::write(&file_path, "content").unwrap();
+
+        let empty_whitelist: Vec<String> = vec![];
+        assert!(is_valid_file(&file_path, &empty_whitelist));
+    }
+
+    #[test]
+    fn test_is_valid_file_empty_path() {
+        let path = PathBuf::new();
+        let whitelist = vec!["txt".to_string()];
+        assert!(!is_valid_file(&path, &whitelist));
+    }
+
+    #[test]
+    fn test_is_valid_file_invalid_metadata() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file_path = temp_dir.path().join("nonexistentfile.txt");
+
+        let whitelist = vec!["txt".to_string()];
+        assert!(!is_valid_file(&file_path, &whitelist));
+    }
+
+    #[test]
+    fn test_is_valid_file_directory_instead_of_file() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let dir_path = temp_dir.path().join("subdir");
+        fs::create_dir(&dir_path).unwrap();
+
+        let whitelist = vec!["txt".to_string()];
+        assert!(!is_valid_file(&dir_path, &whitelist));
+    }
+
+    #[test]
     fn test_get_file_paths() {
         let temp_dir = tempfile::tempdir().unwrap();
         let file_path_1 = temp_dir.path().join("test1.txt");
