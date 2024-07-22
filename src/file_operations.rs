@@ -8,7 +8,9 @@ pub(crate) fn get_file_paths(root_path: &PathBuf, whitelisted_file_types: &Vec<S
     let mut files = Vec::new();
     for entry in WalkDir::new(root_path).into_iter().filter_map(|e| e.ok()) {
         if is_valid_file(&entry.path(), &whitelisted_file_types) {
-            files.push(entry.path().to_path_buf());
+            let file_path = entry.path().to_path_buf();
+            println!("Reading {}", &file_path.display());
+            files.push(file_path);
         }
     }
     files
@@ -32,7 +34,9 @@ fn is_valid_file(path: &Path, whitelisted_file_types: &Vec<String>) -> bool {
 pub fn distribute_contents(root_path: &PathBuf, clipboard_text: &str) -> io::Result<()> {
     let files_contents = parse_combined_contents(clipboard_text);
     for (relative_path, content) in files_contents {
-        write_file(root_path.join(relative_path), &content)?;
+        let file_path = root_path.join(relative_path);
+        println!("Writing {}", &file_path.display());
+        write_file(file_path, &content)?;
     }
     Ok(())
 }

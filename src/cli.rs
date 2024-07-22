@@ -8,7 +8,7 @@ pub struct Cli {
     pub command: Option<AppCommand>,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 pub enum AppCommand {
     /// Aggregates file contents
     Aggregate {
@@ -22,7 +22,7 @@ pub enum AppCommand {
     },
 }
 
-#[derive(Args)]
+#[derive(Args, Debug)]
 pub struct Options {
     /// The path to use (optional, defaults to current directory)
     #[arg(short, long, help = "The path to use for the operation. If not specified, defaults to the current directory.")]
