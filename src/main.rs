@@ -1,4 +1,6 @@
+use std::path::{Path, PathBuf};
 use clap::{Parser};
+use walkdir::WalkDir;
 use crate::cli::{AppCommand, Cli, Options};
 
 mod cli;
@@ -29,6 +31,17 @@ fn aggregate(options: Options) {
         println!("Using extensions: {:?}", extensions);
         // Extension logic here
     }
+
+    walk_directory(&root_path);
+}
+
+fn walk_directory(root_path: &PathBuf) {
+    for entry in WalkDir::new(&root_path).into_iter().filter_map(|e| e.ok()) {
+        match make_relative(entry.path(), &root_path) {
+            Some(relative_path) => println!("{}", relative_path.display()),
+            None => println!("The base path is not an ancestor of the absolute path."),
+        }
+    }
 }
 
 fn distribute(options: Options) {
@@ -42,5 +55,17 @@ fn distribute(options: Options) {
     if let Some(extensions) = options.extensions {
         println!("Using extensions: {:?}", extensions);
         // Extension logic here
+    }
+
+    walk_directory(&root_path);
+}
+
+fn make_relative(absolute_path: &Path, base_path: &Path) -> Option<PathBuf> {
+    // Check if base_path is an ancestor of absolute_path
+    if absolute_path.starts_with(base_path) {
+        let relative_path = absolute_path.strip_prefix(base_path).ok()?;
+        Some(relative_path.to_path_buf())
+    } else {
+        None
     }
 }
