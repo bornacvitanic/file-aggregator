@@ -60,7 +60,8 @@ fn combine_file_contents(root_path: &PathBuf, file_paths: &Vec<PathBuf>) -> Opti
                         if let Err(err) = file.read_to_string(&mut contents) {
                             eprintln!("Error reading file {}: {}", file_path.display(), err);
                         } else {
-                            combined_result.push_str(&format!("//{}\n", relative_path.display()));
+                            println!("Reading {}", &relative_path.display());
+                            combined_result.push_str(&format!("==={}\n", relative_path.display()));
                             combined_result.push_str(&contents);
                             combined_result.push('\n');
                         }
@@ -91,21 +92,45 @@ fn get_file_paths(root_path: &PathBuf) -> Vec<PathBuf> {
 }
 
 fn distribute(options: Options) {
-    println!("{}", "Distributing files...");
+    println!("Distributing files...");
 
     let root_path = options.path.unwrap_or_else(|| std::env::current_dir().unwrap());
 
     println!("Using path: {:?}", root_path);
 
-
-    if let Some(extensions) = options.extensions {
-        println!("Using extensions: {:?}", extensions);
-        // Extension logic here
-    }
-
     let mut ctx = ClipboardContext::new().unwrap();
     let clipboard_text = ctx.get_contents().unwrap();
-    println!("{}", clipboard_text);
+
+    let files_contents = parse_combined_contents(&clipboard_text);
+    for (relative_path, content) in files_contents {
+        let file_path = root_path.join(relative_path);
+        if let Some(parent) = file_path.parent() {
+            std::fs::create_dir_all(parent).unwrap();
+        }
+        println!("Writing {}", &file_path.display());
+        std::fs::write(file_path, content).unwrap();
+    }
+}
+
+fn parse_combined_contents(clipboard_text: &str) -> Vec<(PathBuf, String)> {
+    let mut files_contents = Vec::new();
+    let mut lines = clipboard_text.lines().peekable();
+    while let Some(line) = lines.next() {
+        if line.starts_with("===") {
+            let relative_path = line.trim_start_matches("===");
+            let mut content = String::new();
+            while let Some(content_line) = lines.peek() {
+                if content_line.starts_with("===") {
+                    break;
+                }
+                content.push_str(content_line);
+                content.push('\n');
+                lines.next(); // Move to the next line
+            }
+            files_contents.push((PathBuf::from(relative_path), content));
+        }
+    }
+    files_contents
 }
 
 fn make_relative(absolute_path: &Path, base_path: &Path) -> Option<PathBuf> {
