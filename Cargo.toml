@@ -2,6 +2,8 @@
 name = "file_aggregator"
 version = "0.1.0"
 authors = ["Borna Cvitanić borna.cvitanic@gmail.com"]
+description = "File Aggregator is a utility for aggregating and distributing file contents. It allows you to combine file contents from a specified directory into a single text, which is copied to the clipboard. You can also distribute file contents from the clipboard back to their respective files based on the relative paths."
+repository = "https://github.com/bornacvitanic/file_aggregator"
 edition = "2021"
 
 [[bin]]
