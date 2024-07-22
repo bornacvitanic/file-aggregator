@@ -1,3 +1,5 @@
+[![Test](https://github.com/bornacvitanic/file_aggregator/actions/workflows/rust.yml/badge.svg)](https://github.com/bornacvitanic/file_aggregator/actions/workflows/rust.yml) [![Download](https://img.shields.io/badge/download-releases-blue.svg)](https://github.com/bornacvitanic/file_aggregator/releases)
+
 # File Aggregator
 
 File Aggregator is a utility for aggregating and distributing file contents. It allows you to combine file contents from a specified directory into a single text, which is copied to the clipboard. You can also distribute file contents from the clipboard back to their respective files based on the relative paths.
