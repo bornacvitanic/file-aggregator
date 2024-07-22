@@ -92,3 +92,114 @@ fn parse_combined_contents(clipboard_text: &str) -> Vec<(PathBuf, String)> {
     }
     files_contents
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    #[test]
+    fn test_is_valid_file() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file_path = temp_dir.path().join("test.txt");
+        fs::write(&file_path, "content").unwrap();
+
+        let whitelist = vec!["txt".to_string()];
+        assert!(is_valid_file(&file_path, &whitelist));
+
+        let empty_whitelist: Vec<String> = vec![];
+        assert!(is_valid_file(&file_path, &empty_whitelist));
+
+        let invalid_whitelist = vec!["md".to_string()];
+        assert!(!is_valid_file(&file_path, &invalid_whitelist));
+    }
+
+    #[test]
+    fn test_get_file_paths() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file_path_1 = temp_dir.path().join("test1.txt");
+        let file_path_2 = temp_dir.path().join("test2.md");
+        fs::write(&file_path_1, "content1").unwrap();
+        fs::write(&file_path_2, "content2").unwrap();
+
+        let whitelist = vec!["txt".to_string()];
+        let result = get_file_paths(&temp_dir.path().to_path_buf(), &whitelist);
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0], file_path_1);
+    }
+
+    #[test]
+    fn test_write_file() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file_path = temp_dir.path().join("test.txt");
+        write_file(file_path.clone(), "content").unwrap();
+
+        let mut content = String::new();
+        let mut file = File::open(file_path).unwrap();
+        file.read_to_string(&mut content).unwrap();
+        assert_eq!(content, "content");
+    }
+
+    #[test]
+    fn test_distribute_contents() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let root_path = temp_dir.path().to_path_buf();
+        let clipboard_text = format!("{0}test1.txt\ncontent1\n{0}test2.md\ncontent2\n", PATH_LINE_IDENTIFIER);
+        distribute_contents(&root_path, &*clipboard_text).unwrap();
+
+        let file_path_1 = root_path.join("test1.txt");
+        let file_path_2 = root_path.join("test2.md");
+
+        assert!(file_path_1.exists());
+        assert!(file_path_2.exists());
+
+        let mut content = String::new();
+        let mut file = File::open(file_path_1).unwrap();
+        file.read_to_string(&mut content).unwrap();
+        assert_eq!(content, "content1\n");
+
+        content.clear();
+        let mut file = File::open(file_path_2).unwrap();
+        file.read_to_string(&mut content).unwrap();
+        assert_eq!(content, "content2\n");
+    }
+
+    #[test]
+    fn test_make_relative() {
+        let base_path = Path::new("/base");
+        let absolute_path = Path::new("/base/dir/file.txt");
+        let relative_path = make_relative(absolute_path, base_path).unwrap();
+        assert_eq!(relative_path, PathBuf::from("dir/file.txt"));
+
+        let invalid_path = Path::new("/other/file.txt");
+        assert!(make_relative(invalid_path, base_path).is_none());
+    }
+
+    #[test]
+    fn test_combine_file_contents() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let file_path_1 = temp_dir.path().join("test1.txt");
+        let file_path_2 = temp_dir.path().join("test2.txt");
+        fs::write(&file_path_1, "content1").unwrap();
+        fs::write(&file_path_2, "content2").unwrap();
+
+        let root_path = temp_dir.path().to_path_buf();
+        let file_paths = vec![file_path_1, file_path_2];
+        let combined = combine_file_contents(&root_path, &file_paths).unwrap();
+
+        let expected = format!("{0}test1.txt\ncontent1\n{0}test2.txt\ncontent2\n", PATH_LINE_IDENTIFIER);
+        assert_eq!(combined, expected);
+    }
+
+    #[test]
+    fn test_parse_combined_contents() {
+        let clipboard_text = format!("{0}test1.txt\ncontent1\n{0}test2.txt\ncontent2\n", PATH_LINE_IDENTIFIER);
+        let parsed = parse_combined_contents(&*clipboard_text);
+
+        assert_eq!(parsed.len(), 2);
+        assert_eq!(parsed[0].0, PathBuf::from("test1.txt"));
+        assert_eq!(parsed[0].1, "content1\n");
+        assert_eq!(parsed[1].0, PathBuf::from("test2.txt"));
+        assert_eq!(parsed[1].1, "content2\n");
+    }
+}
