@@ -15,11 +15,11 @@ path = "src/main.rs"
 
 [dependencies]
 # command-line interface (CLI)
-clap = {version = "4.5.9", features = ["derive"]}
+clap = {version = "^4.5.9", features = ["derive"]}
 # file system navigation
-walkdir = "2.5.0"
+walkdir = "^2.5.0"
 ## clipboard access
-copypasta = "0.10.1"
+copypasta = "^0.10.1"
 
 [dev-dependencies]
-tempfile = "3.10.1"
+tempfile = "^3.10.1"
