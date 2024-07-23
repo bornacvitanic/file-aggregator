@@ -1,8 +1,8 @@
-[![Test](https://github.com/bornacvitanic/file_aggregator/actions/workflows/rust.yml/badge.svg)](https://github.com/bornacvitanic/file_aggregator/actions/workflows/rust.yml)
-[![dependency status](https://deps.rs/repo/github/bornacvitanic/file_aggregator/status.svg)](https://deps.rs/repo/github/bornacvitanic/file_aggregator)
+[![Test](https://github.com/bornacvitanic/file-aggregator/actions/workflows/rust.yml/badge.svg)](https://github.com/bornacvitanic/file-aggregator/actions/workflows/rust.yml)
+[![dependency status](https://deps.rs/repo/github/bornacvitanic/file-aggregator/status.svg)](https://deps.rs/repo/github/bornacvitanic/file-aggregator)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Crates.io](https://img.shields.io/crates/v/file_aggregator.svg)](https://crates.io/crates/file_aggregator)
-[![Download](https://img.shields.io/badge/download-releases-blue.svg)](https://github.com/bornacvitanic/file_aggregator/releases)
+[![Crates.io](https://img.shields.io/crates/v/file-aggregator.svg)](https://crates.io/crates/file-aggregator)
+[![Download](https://img.shields.io/badge/download-releases-blue.svg)](https://github.com/bornacvitanic/file-aggregator/releases)
 
 # File Aggregator
 
@@ -32,8 +32,8 @@ File Aggregator is a utility for aggregating and distributing file contents. It 
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/bornacvitanic/file_aggregator.git
-   cd file_aggregator
+   git clone https://github.com/bornacvitanic/file-aggregator.git
+   cd file-aggregator
    ```
 
 2. Build the project:
@@ -87,4 +87,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) f
 ## Contact
 
 - **Email**: [borna.cvitanic@gmail.com](mailto:borna.cvitanic@gmail.com)
-- **GitHub Issues**: [GitHub Issues Page](https://github.com/bornacvitanic/file_aggregator/issues)
+- **GitHub Issues**: [GitHub Issues Page](https://github.com/bornacvitanic/file-aggregator/issues)
