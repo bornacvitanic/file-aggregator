@@ -17,6 +17,8 @@ File Aggregator is a utility for aggregating and distributing file contents. It 
 
 ### Planned Features
 
+- **Deleting files with Distribute**:
+  - Allow the distribute command to delete files with a specific identifier
 - **Enhanced Error Handling**:
    - Improve error messages and handling using crates like `thiserror` or `anyhow`.
 - **Logging**:
