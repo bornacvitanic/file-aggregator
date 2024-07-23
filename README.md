@@ -1,4 +1,7 @@
-[![Test](https://github.com/bornacvitanic/file_aggregator/actions/workflows/rust.yml/badge.svg)](https://github.com/bornacvitanic/file_aggregator/actions/workflows/rust.yml) [![Download](https://img.shields.io/badge/download-releases-blue.svg)](https://github.com/bornacvitanic/file_aggregator/releases)
+[![Test](https://github.com/bornacvitanic/file_aggregator/actions/workflows/rust.yml/badge.svg)](https://github.com/bornacvitanic/file_aggregator/actions/workflows/rust.yml)
+[![dependency status](https://deps.rs/repo/github/bornacvitanic/file_aggregator/status.svg)](https://deps.rs/repo/github/bornacvitanic/file_aggregator)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Download](https://img.shields.io/badge/download-releases-blue.svg)](https://github.com/bornacvitanic/file_aggregator/releases)
 
 # File Aggregator
 
