@@ -14,6 +14,18 @@ File Aggregator is a utility for aggregating and distributing file contents. It 
 - **Clipboard Integration**: Copy the aggregated contents directly to the clipboard for easy sharing.
 - **Path and Extension Filtering**: Specify the root path and file extensions to include or exclude certain files.
 
+### Planned Features
+
+- **Enhanced Error Handling**:
+   - Improve error messages and handling using crates like `thiserror` or `anyhow`.
+- **Logging**:
+   - Add logging capabilities using a crate like `log` or `env_logger` to provide more insight into the tool's operations, especially for debugging and user feedback.
+- **Parallel Processing**:
+   - Implement parallel processing for file operations using the `rayon` crate to improve performance.
+- **Verbose and Quiet Modes**:
+   - Provide options for verbose output (detailed logs) and quiet mode (minimal output) to give users control over the output verbosity.
+- **Configuration File Support**:
+   - Allow users to specify configurations in a file (e.g., JSON, TOML) instead of only through command-line arguments.
 
 ### Installation
 
