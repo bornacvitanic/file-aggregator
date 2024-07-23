@@ -4,10 +4,10 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
-pub(crate) fn get_file_paths(root_path: &PathBuf, whitelisted_file_types: &Vec<String>) -> Vec<PathBuf> {
+pub(crate) fn get_file_paths(root_path: &PathBuf, whitelisted_file_types: &[String]) -> Vec<PathBuf> {
     let mut files = Vec::new();
     for entry in WalkDir::new(root_path).into_iter().filter_map(|e| e.ok()) {
-        if is_valid_file(&entry.path(), &whitelisted_file_types) {
+        if is_valid_file(entry.path(), whitelisted_file_types) {
             let file_path = entry.path().to_path_buf();
             println!("Reading {}", &file_path.display());
             files.push(file_path);
@@ -16,7 +16,7 @@ pub(crate) fn get_file_paths(root_path: &PathBuf, whitelisted_file_types: &Vec<S
     files
 }
 
-fn is_valid_file(path: &Path, whitelisted_file_types: &Vec<String>) -> bool {
+fn is_valid_file(path: &Path, whitelisted_file_types: &[String]) -> bool {
     match path.metadata() {
         Ok(metadata) if metadata.is_file() => {
             if whitelisted_file_types.is_empty() {
@@ -31,7 +31,7 @@ fn is_valid_file(path: &Path, whitelisted_file_types: &Vec<String>) -> bool {
     }
 }
 
-pub fn distribute_contents(root_path: &PathBuf, clipboard_text: &str) -> io::Result<()> {
+pub fn distribute_contents(root_path: &Path, clipboard_text: &str) -> io::Result<()> {
     let files_contents = parse_combined_contents(clipboard_text);
     for (relative_path, content) in files_contents {
         let file_path = root_path.join(relative_path);
@@ -59,9 +59,9 @@ fn make_relative(absolute_path: &Path, base_path: &Path) -> Option<PathBuf> {
     }
 }
 
-const PATH_LINE_IDENTIFIER: &'static str = "===";
+const PATH_LINE_IDENTIFIER: &str = "===";
 
-pub fn combine_file_contents(root_path: &PathBuf, file_paths: &Vec<PathBuf>) -> io::Result<String> {
+pub fn combine_file_contents(root_path: &Path, file_paths: &[PathBuf]) -> io::Result<String> {
     let mut combined_result = String::new();
     for file_path in file_paths.iter() {
         if let Some(relative_path) = make_relative(file_path, root_path) {
