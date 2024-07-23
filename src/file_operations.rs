@@ -4,7 +4,10 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
-pub(crate) fn get_file_paths(root_path: &PathBuf, whitelisted_file_types: &[String]) -> Vec<PathBuf> {
+pub(crate) fn get_file_paths(
+    root_path: &PathBuf,
+    whitelisted_file_types: &[String],
+) -> Vec<PathBuf> {
     let mut files = Vec::new();
     for entry in WalkDir::new(root_path).into_iter().filter_map(|e| e.ok()) {
         if is_valid_file(entry.path(), whitelisted_file_types) {
@@ -23,7 +26,9 @@ fn is_valid_file(path: &Path, whitelisted_file_types: &[String]) -> bool {
                 return true;
             }
             if let Some(extension) = path.extension().and_then(|e| e.to_str()) {
-                return whitelisted_file_types.iter().any(|ext| ext.eq_ignore_ascii_case(extension));
+                return whitelisted_file_types
+                    .iter()
+                    .any(|ext| ext.eq_ignore_ascii_case(extension));
             }
             false
         }
@@ -68,7 +73,11 @@ pub fn combine_file_contents(root_path: &Path, file_paths: &[PathBuf]) -> io::Re
             let mut contents = String::new();
             let mut file = File::open(file_path)?;
             file.read_to_string(&mut contents)?;
-            combined_result.push_str(&format!("{}{}\n", PATH_LINE_IDENTIFIER, relative_path.display()));
+            combined_result.push_str(&format!(
+                "{}{}\n",
+                PATH_LINE_IDENTIFIER,
+                relative_path.display()
+            ));
             combined_result.push_str(&contents);
             combined_result.push('\n');
         }
@@ -214,7 +223,10 @@ mod tests {
     fn test_distribute_contents() {
         let temp_dir = tempfile::tempdir().unwrap();
         let root_path = temp_dir.path().to_path_buf();
-        let clipboard_text = format!("{0}test1.txt\ncontent1\n{0}test2.md\ncontent2\n", PATH_LINE_IDENTIFIER);
+        let clipboard_text = format!(
+            "{0}test1.txt\ncontent1\n{0}test2.md\ncontent2\n",
+            PATH_LINE_IDENTIFIER
+        );
         distribute_contents(&root_path, &*clipboard_text).unwrap();
 
         let file_path_1 = root_path.join("test1.txt");
@@ -257,13 +269,19 @@ mod tests {
         let file_paths = vec![file_path_1, file_path_2];
         let combined = combine_file_contents(&root_path, &file_paths).unwrap();
 
-        let expected = format!("{0}test1.txt\ncontent1\n{0}test2.txt\ncontent2\n", PATH_LINE_IDENTIFIER);
+        let expected = format!(
+            "{0}test1.txt\ncontent1\n{0}test2.txt\ncontent2\n",
+            PATH_LINE_IDENTIFIER
+        );
         assert_eq!(combined, expected);
     }
 
     #[test]
     fn test_parse_combined_contents() {
-        let clipboard_text = format!("{0}test1.txt\ncontent1\n{0}test2.txt\ncontent2\n", PATH_LINE_IDENTIFIER);
+        let clipboard_text = format!(
+            "{0}test1.txt\ncontent1\n{0}test2.txt\ncontent2\n",
+            PATH_LINE_IDENTIFIER
+        );
         let parsed = parse_combined_contents(&*clipboard_text);
 
         assert_eq!(parsed.len(), 2);

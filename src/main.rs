@@ -1,31 +1,38 @@
 mod cli;
 mod file_operations;
 
+use crate::cli::Options;
 use clap::Parser;
 use cli::{AppCommand, Cli};
-use file_operations::{combine_file_contents, distribute_contents, get_file_paths};
 use copypasta::{ClipboardContext, ClipboardProvider};
-use crate::cli::Options;
+use file_operations::{combine_file_contents, distribute_contents, get_file_paths};
 
 fn main() {
     let cli = Cli::parse();
 
-    let command = cli.command.unwrap_or(AppCommand::Aggregate { options: Options { path: None, extensions: None } });
+    let command = cli.command.unwrap_or(AppCommand::Aggregate {
+        options: Options {
+            path: None,
+            extensions: None,
+        },
+    });
 
     match command {
         AppCommand::Aggregate { options } => {
             aggregate(options);
-        },
+        }
         AppCommand::Distribute { options } => {
             distribute(options);
-        },
+        }
     }
 }
 
 fn aggregate(options: cli::Options) {
     println!("Aggregating files:");
 
-    let root_path = options.path.unwrap_or_else(|| std::env::current_dir().unwrap());
+    let root_path = options
+        .path
+        .unwrap_or_else(|| std::env::current_dir().unwrap());
 
     println!("Using path: {:?}", root_path);
 
@@ -46,7 +53,9 @@ fn aggregate(options: cli::Options) {
 fn distribute(options: cli::Options) {
     println!("Distributing files:");
 
-    let root_path = options.path.unwrap_or_else(|| std::env::current_dir().unwrap());
+    let root_path = options
+        .path
+        .unwrap_or_else(|| std::env::current_dir().unwrap());
 
     println!("Using path: {:?}", root_path);
 
