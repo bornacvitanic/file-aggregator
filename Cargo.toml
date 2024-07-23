@@ -6,6 +6,9 @@ description = "File Aggregator is a utility for aggregating and distributing fil
 repository = "https://github.com/bornacvitanic/file_aggregator"
 edition = "2021"
 
+keywords = ["CLI", "file", "aggregation", "clipboard", ]
+categories = ["command-line-utilities", "filesystem", "text-processing", "data-structures", "development-tools"]
+
 [[bin]]
 name = "fileagg"
 path = "src/main.rs"
