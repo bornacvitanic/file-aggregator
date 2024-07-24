@@ -4,6 +4,15 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
+const PATH_LINE_IDENTIFIER: &str = "=== FILE => ";
+const DELETED_FILE_IDENTIFIER: &str = "=== ERASE => ";
+
+#[derive(Debug)]
+enum FileAction {
+    Write(PathBuf, String),
+    Delete(PathBuf),
+}
+
 pub(crate) fn get_file_paths(
     root_path: &PathBuf,
     whitelisted_file_types: &[String],
@@ -37,11 +46,20 @@ fn is_valid_file(path: &Path, whitelisted_file_types: &[String]) -> bool {
 }
 
 pub fn distribute_contents(root_path: &Path, clipboard_text: &str) -> io::Result<()> {
-    let files_contents = parse_combined_contents(clipboard_text);
-    for (relative_path, content) in files_contents {
-        let file_path = root_path.join(relative_path);
-        println!("Writing {}", &file_path.display());
-        write_file(file_path, &content)?;
+    let file_actions = parse_combined_contents(clipboard_text);
+    for file_action in file_actions {
+        match file_action {
+            FileAction::Write(relative_path, content) => {
+                let file_path = root_path.join(relative_path);
+                println!("Writing {}", &file_path.display());
+                write_file(file_path, &content)?;
+            }
+            FileAction::Delete(relative_path) => {
+                let file_path = root_path.join(relative_path);
+                println!("Deleting {}", &file_path.display());
+                delete_file(file_path)?;
+            }
+        }
     }
     Ok(())
 }
@@ -55,6 +73,15 @@ fn write_file(file_path: PathBuf, content: &str) -> io::Result<()> {
     Ok(())
 }
 
+fn delete_file(file_path: PathBuf) -> io::Result<()> {
+    if file_path.exists() {
+        fs::remove_file(file_path)?;
+    } else {
+        println!("File not found: {}", &file_path.display());
+    }
+    Ok(())
+}
+
 fn make_relative(absolute_path: &Path, base_path: &Path) -> Option<PathBuf> {
     if absolute_path.starts_with(base_path) {
         let relative_path = absolute_path.strip_prefix(base_path).ok()?;
@@ -63,8 +90,6 @@ fn make_relative(absolute_path: &Path, base_path: &Path) -> Option<PathBuf> {
         None
     }
 }
-
-const PATH_LINE_IDENTIFIER: &str = "===";
 
 pub fn combine_file_contents(root_path: &Path, file_paths: &[PathBuf]) -> io::Result<String> {
     let mut combined_result = String::new();
@@ -85,22 +110,27 @@ pub fn combine_file_contents(root_path: &Path, file_paths: &[PathBuf]) -> io::Re
     Ok(combined_result)
 }
 
-fn parse_combined_contents(clipboard_text: &str) -> Vec<(PathBuf, String)> {
+fn parse_combined_contents(clipboard_text: &str) -> Vec<FileAction> {
     let mut files_contents = Vec::new();
     let mut lines = clipboard_text.lines().peekable();
     while let Some(line) = lines.next() {
         if line.starts_with(PATH_LINE_IDENTIFIER) {
-            let relative_path = line.trim_start_matches(PATH_LINE_IDENTIFIER);
+            let relative_path = line.trim_start_matches(PATH_LINE_IDENTIFIER).trim();
             let mut content = String::new();
             while let Some(content_line) = lines.peek() {
-                if content_line.starts_with(PATH_LINE_IDENTIFIER) {
+                if content_line.starts_with(PATH_LINE_IDENTIFIER)
+                    || content_line.starts_with(DELETED_FILE_IDENTIFIER)
+                {
                     break;
                 }
                 content.push_str(content_line);
                 content.push('\n');
                 lines.next(); // Move to the next line
             }
-            files_contents.push((PathBuf::from(relative_path.trim()), content));
+            files_contents.push(FileAction::Write(PathBuf::from(relative_path), content));
+        } else if line.starts_with(DELETED_FILE_IDENTIFIER) {
+            let relative_path = line.trim_start_matches(DELETED_FILE_IDENTIFIER).trim();
+            files_contents.push(FileAction::Delete(PathBuf::from(relative_path)));
         }
     }
     files_contents
@@ -247,6 +277,29 @@ mod tests {
     }
 
     #[test]
+    fn test_delete_file() {
+        // Create a temporary directory
+        let temp_dir = tempfile::tempdir().unwrap();
+        let root_path = temp_dir.path().to_path_buf();
+
+        // Create a temporary file to be deleted
+        let file_path = root_path.join("delete_me.txt");
+        fs::write(&file_path, "temporary content").unwrap();
+
+        // Ensure the file exists before deletion
+        assert!(file_path.exists());
+
+        // Prepare clipboard text to delete the file
+        let clipboard_text = format!("{0}delete_me.txt\n", DELETED_FILE_IDENTIFIER);
+
+        // Distribute contents to delete the file
+        distribute_contents(&root_path, &clipboard_text).unwrap();
+
+        // Ensure the file does not exist after deletion
+        assert!(!file_path.exists());
+    }
+
+    #[test]
     fn test_make_relative() {
         let base_path = Path::new("/base");
         let absolute_path = Path::new("/base/dir/file.txt");
@@ -279,15 +332,34 @@ mod tests {
     #[test]
     fn test_parse_combined_contents() {
         let clipboard_text = format!(
-            "{0}test1.txt\ncontent1\n{0}test2.txt\ncontent2\n",
-            PATH_LINE_IDENTIFIER
+            "{0}test1.txt\ncontent1\n{0}test2.txt\ncontent2\n{1}test3.txt\n",
+            PATH_LINE_IDENTIFIER, DELETED_FILE_IDENTIFIER
         );
-        let parsed = parse_combined_contents(&*clipboard_text);
+        let parsed = parse_combined_contents(&clipboard_text);
 
-        assert_eq!(parsed.len(), 2);
-        assert_eq!(parsed[0].0, PathBuf::from("test1.txt"));
-        assert_eq!(parsed[0].1, "content1\n");
-        assert_eq!(parsed[1].0, PathBuf::from("test2.txt"));
-        assert_eq!(parsed[1].1, "content2\n");
+        assert_eq!(parsed.len(), 3);
+
+        match &parsed[0] {
+            FileAction::Write(path, content) => {
+                assert_eq!(path, &PathBuf::from("test1.txt"));
+                assert_eq!(content, "content1\n");
+            }
+            _ => panic!("Expected FileAction::Write"),
+        }
+
+        match &parsed[1] {
+            FileAction::Write(path, content) => {
+                assert_eq!(path, &PathBuf::from("test2.txt"));
+                assert_eq!(content, "content2\n");
+            }
+            _ => panic!("Expected FileAction::Write"),
+        }
+
+        match &parsed[2] {
+            FileAction::Delete(path) => {
+                assert_eq!(path, &PathBuf::from("test3.txt"));
+            }
+            _ => panic!("Expected FileAction::Delete"),
+        }
     }
 }

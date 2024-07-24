@@ -14,11 +14,9 @@ File Aggregator is a utility for aggregating and distributing file contents. It 
 - **Distribute File Contents**: Distribute the contents from the clipboard back into their respective files based on relative paths.
 - **Clipboard Integration**: Copy the aggregated contents directly to the clipboard for easy sharing.
 - **Path and Extension Filtering**: Specify the root path and file extensions to include or exclude certain files.
+- **Delete File Contents**: Remove files whose paths are specified in the clipboard with a specific identifier.
 
 ### Planned Features
-
-- **Deleting files with Distribute**:
-  - Allow the distribute command to delete files with a specific identifier
 - **Enhanced Error Handling**:
    - Improve error messages and handling using crates like `thiserror` or `anyhow`.
 - **Logging**:
